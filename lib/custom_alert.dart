@@ -2,8 +2,14 @@ import 'package:flutter/material.dart';
 
 class CustomDialog extends StatelessWidget {
   final String title, description, buttonText, imagePath;
+  final VoidCallback onPressed;
 
-  CustomDialog({this.title, this.description, this.buttonText, this.imagePath});
+  CustomDialog(
+      {this.title,
+      this.description,
+      this.buttonText,
+      this.imagePath,
+      this.onPressed});
 
   @override
   Widget build(BuildContext context) {
@@ -42,15 +48,17 @@ class CustomDialog extends StatelessWidget {
                       fontWeight: FontWeight.w700)),
               SizedBox(height: 16.0),
               Text(description,
+                  textAlign: TextAlign.center,
                   style: TextStyle(color: Colors.black, fontSize: 16.0)),
               SizedBox(height: 24.0),
               Align(
                 alignment: Alignment.bottomRight,
                 child: FlatButton(
                   child:
-                      Text(buttonText, style: TextStyle(color: Colors.black)),
+                      Text(buttonText, style: TextStyle(color: Colors.black45)),
                   onPressed: () {
                     Navigator.pop(context);
+                    if (onPressed != null) onPressed();
                   },
                 ),
               ),

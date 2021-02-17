@@ -6,9 +6,9 @@ import 'package:image_cropper/image_cropper.dart';
 import 'package:metadata/metadata.dart' as md;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:connectivity/connectivity.dart';
 import 'custom_alert.dart';
-
-const bool ALLOW_UPLOAD = false;
 
 class ImageCapture extends StatefulWidget {
   @override
@@ -16,20 +16,37 @@ class ImageCapture extends StatefulWidget {
 }
 
 class _ImageCaptureState extends State<ImageCapture> {
-  // Active image file
-  double _label = 0.0;
   var _exifData;
   File _imageFile;
+  double _label;
+  double _progress;
+  bool _isLoading = false;
+  bool _isLogged = false;
   final _imagePicker = ImagePicker();
+
+  // Sign-in anonymously
+  Future<void> _signInAnonymously() async {
+    try {
+      await FirebaseAuth.instance.signInAnonymously();
+      _isLogged = true;
+    } catch (e) {
+      print(e); // TODO: show dialog with error
+    }
+  }
 
   // Select an  image via gallery or camera
   Future<void> _pickImage(ImageSource source) async {
     PickedFile selected = await _imagePicker.getImage(source: source);
 
+    // SignIn Anonymously
+    if (!_isLogged) await _signInAnonymously();
+
     // Read image metadata
     var bytes = await selected.readAsBytes();
     var metadata = md.MetaData.exifData(bytes);
     var exifData = (metadata.error == null) ? metadata.exifData : {};
+
+    print("metadata: $exifData ...!");
 
     setState(() {
       _imageFile = File(selected.path);
@@ -54,6 +71,17 @@ class _ImageCaptureState extends State<ImageCapture> {
     });
   }
 
+  // Check Internet Connection
+  Future<bool> checkInternet() async {
+    var connectivityResult = await (Connectivity().checkConnectivity());
+
+    if (connectivityResult == ConnectivityResult.mobile ||
+        connectivityResult == ConnectivityResult.wifi)
+      return true;
+    else
+      return false;
+  }
+
   // Remove image
   void _clear() {
     setState(() {
@@ -66,20 +94,60 @@ class _ImageCaptureState extends State<ImageCapture> {
   void _sendImage() async {
     String idName = DateTime.now().millisecondsSinceEpoch.toString();
 
-    if (ALLOW_UPLOAD) {
+    // Check Internet Connection
+    bool isConnected = await checkInternet();
+    if (isConnected) {
       StorageUploadTask _uploadTask = FirebaseStorage.instance
           .ref()
           .child("data")
           .child(idName)
           .putFile(_imageFile);
 
+      _uploadTask.events.listen((event) {
+        setState(() {
+          _isLoading = true;
+          _progress = event.snapshot.bytesTransferred.toDouble() /
+              event.snapshot.totalByteCount.toDouble();
+        });
+      }).onError((error) {
+        print(error);
+      });
+
+      print("_exifData 1: $_exifData ...!");
+
       StorageTaskSnapshot _taskSnapshot = await _uploadTask.onComplete;
       String url = await _taskSnapshot.ref.getDownloadURL();
       _exifData["firebase"] = {"idName": idName, "url": url, "label": _label};
+      print("_exifData 2: $_exifData ...!");
       Firestore.instance.collection("data").add(_exifData);
-    }
 
-    _clear(); // Change to progress bar
+      showDialog(
+          context: context,
+          builder: (context) => CustomDialog(
+                title: "Upload",
+                description: "Imagem enviada com sucesso!",
+                buttonText: "OK",
+                imagePath: "assets/images/checked.gif",
+                onPressed: _clear,
+              )).then((value) {
+        _isLoading = false;
+        _progress = 0.0;
+      });
+    } else {
+      showDialog(
+          context: context,
+          builder: (context) => CustomDialog(
+                title: "Upload",
+                description:
+                    "Falha no envio da imagem!\nConfira sua conexão com a internet.",
+                buttonText: "OK",
+                imagePath: "assets/images/failed.gif",
+                onPressed: _clear,
+              )).then((value) {
+        _isLoading = false;
+        _progress = 0.0;
+      });
+    }
   }
 
   @override
@@ -103,57 +171,12 @@ class _ImageCaptureState extends State<ImageCapture> {
                     onPressed: () {
                       showDialog(
                           context: context,
-                          builder: (context) {
-                            return Dialog(
-                              backgroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(20.0)),
-                              child: Container(
-                                height: 200,
-                                child: Padding(
-                                  padding: EdgeInsets.all(12.0),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                    CrossAxisAlignment.start,
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: <Widget>[
-                                      TextField(
-                                        decoration: InputDecoration(
-                                            border: InputBorder.none,
-                                            hintText: "Hey ya im hint text",
-                                            hintStyle: TextStyle(color: Colors.black)
-                                        ),
-                                      ),
-                                      SizedBox(
-                                        width: 320.0,
-                                        child: RaisedButton(
-                                          color: Colors.blueAccent,
-                                          child: Text(
-                                            "OK",
-                                            style:
-                                            TextStyle(color: Colors.white),
-                                          ),
-                                          onPressed: () {},
-                                        ),
-                                      )
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            );
-                          });
-                    }),
-                IconButton(
-                    icon: Icon(Icons.plagiarism),
-                    onPressed: () {
-                      showDialog(
-                          context: context,
                           builder: (context) => CustomDialog(
-                            title: "Success",
-                            description: "asydgfhpasidoflsnakdfm~ç/",
-                            buttonText: "ok",
-                            imagePath: "assets/images/check.gif",
-                          ));
+                                title: "Instruções",
+                                description: "bla bla bla",
+                                buttonText: "OK",
+                                imagePath: "assets/images/instruction.gif",
+                              ));
                     }),
               ],
               if (_imageFile != null) ...[
@@ -177,14 +200,17 @@ class _ImageCaptureState extends State<ImageCapture> {
       body: ListView(children: <Widget>[
         if (_imageFile != null) ...[
           Image.file(_imageFile),
-          // Uploader(file: _imageFile),
+          if (_isLoading)
+            LinearProgressIndicator(
+              value: _progress,
+            ),
         ] else ...[
           Column(
             children: <Widget>[
               Image.asset("assets/images/static_background.jpg",
                   fit: BoxFit.fitWidth),
             ],
-          )
+          ),
         ]
       ]),
     );
