@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "246941395228",
+    "firebase_url": "https://coffia-datacollector-default-rtdb.firebaseio.com",
+    "project_id": "coffia-datacollector",
+    "storage_bucket": "coffia-datacollector.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:246941395228:android:e54a4f96f2e0e7af9472d9",
+        "android_client_info": {
+          "package_name": "hsneto.com.coffia_data_collector"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "246941395228-m65tm5rpfchnes3iruqjot4go7bsjgla.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "hsneto.com.coffia_data_collector",
+            "certificate_hash": "df7a8e2edc5a90349f0a5900f7e2fc0f42bcc3de"
+          }
+        },
+        {
+          "client_id": "246941395228-07usknu84veah37nooagkpjhjab3ph1o.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDyO85eAv0vAWhYvR3f9DDQRdoeIQZjZ70"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "246941395228-07usknu84veah37nooagkpjhjab3ph1o.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
