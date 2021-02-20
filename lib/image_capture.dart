@@ -9,6 +9,10 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:connectivity/connectivity.dart';
 import 'custom_alert.dart';
+import 'feedback_dialog.dart';
+
+const int CAPTURE_START_TIME = 9;
+const int CAPTURE_END_TIME = 15;
 
 class ImageCapture extends StatefulWidget {
   @override
@@ -24,6 +28,9 @@ class _ImageCaptureState extends State<ImageCapture> {
   bool _isLogged = false;
   final _imagePicker = ImagePicker();
 
+  TextEditingController labelController = TextEditingController();
+  GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
   // Sign-in anonymously
   Future<void> _signInAnonymously() async {
     try {
@@ -36,22 +43,41 @@ class _ImageCaptureState extends State<ImageCapture> {
 
   // Select an  image via gallery or camera
   Future<void> _pickImage(ImageSource source) async {
-    PickedFile selected = await _imagePicker.getImage(source: source);
+    DateTime currentDateTime = new DateTime.now();
+    DateTime startDateTime = DateTime(currentDateTime.year,
+        currentDateTime.month, currentDateTime.day, CAPTURE_START_TIME);
+    DateTime endDateTime = DateTime(currentDateTime.year, currentDateTime.month,
+        currentDateTime.day, CAPTURE_END_TIME);
 
-    // SignIn Anonymously
-    if (!_isLogged) await _signInAnonymously();
+    if (source == ImageSource.camera &&
+        !(currentDateTime.isAfter(startDateTime) &&
+            currentDateTime.isBefore(endDateTime))) {
+      showDialog(
+          context: context,
+          builder: (context) => CustomDialog(
+                title: "Desculpas",
+                description:
+                    "Por motivos do projeto, o aplicativo bloqueia o uso da câmera antes das $CAPTURE_START_TIME e depois das $CAPTURE_END_TIME horas.",
+                buttonText: "OK",
+                imagePath: "assets/images/attention.gif",
+                onPressed: _clear,
+              ));
+    } else {
+      PickedFile selected = await _imagePicker.getImage(source: source);
 
-    // Read image metadata
-    var bytes = await selected.readAsBytes();
-    var metadata = md.MetaData.exifData(bytes);
-    var exifData = (metadata.error == null) ? metadata.exifData : {};
+      // SignIn Anonymously
+      if (!_isLogged) await _signInAnonymously();
 
-    print("metadata: $exifData ...!");
+      // Read image metadata
+      var bytes = await selected.readAsBytes();
+      var metadata = md.MetaData.exifData(bytes);
+      var exifData = (metadata.error == null) ? metadata.exifData : {};
 
-    setState(() {
-      _imageFile = File(selected.path);
-      _exifData = exifData;
-    });
+      setState(() {
+        _imageFile = File(selected.path);
+        _exifData = exifData;
+      });
+    }
   }
 
   // Cropper plugin
@@ -84,10 +110,41 @@ class _ImageCaptureState extends State<ImageCapture> {
 
   // Remove image
   void _clear() {
+    labelController.text = "";
+
     setState(() {
       _imageFile = null;
       _exifData = null;
+      _formKey = GlobalKey<FormState>();
     });
+  }
+
+  // Remove image
+  void _cancelUpload() {
+    labelController.text = "";
+
+    setState(() {
+      _formKey = GlobalKey<FormState>();
+    });
+  }
+
+  // Label image
+  void _labelImage() async {
+    bool uploadCancelled = await showDialog(
+        context: context,
+        builder: (context) => FeedbackDialog(
+              feedbackController: labelController,
+              formKey: _formKey,
+            ));
+
+    if (!uploadCancelled) {
+      setState(() {
+        _label = double.parse(labelController.text);
+      });
+      _sendImage();
+    } else {
+      _cancelUpload();
+    }
   }
 
   // Upload image and metadata collection
@@ -113,12 +170,9 @@ class _ImageCaptureState extends State<ImageCapture> {
         print(error);
       });
 
-      print("_exifData 1: $_exifData ...!");
-
       StorageTaskSnapshot _taskSnapshot = await _uploadTask.onComplete;
       String url = await _taskSnapshot.ref.getDownloadURL();
       _exifData["firebase"] = {"idName": idName, "url": url, "label": _label};
-      print("_exifData 2: $_exifData ...!");
       Firestore.instance.collection("data").add(_exifData);
 
       showDialog(
@@ -191,7 +245,7 @@ class _ImageCaptureState extends State<ImageCapture> {
                 IconButton(
                     icon: Icon(Icons.cloud_upload),
                     tooltip: 'Upload Image',
-                    onPressed: _sendImage),
+                    onPressed: _labelImage),
               ]
             ],
           ),

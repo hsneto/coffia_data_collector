@@ -63,6 +63,8 @@ flutter:
     - assets/images/checked.gif
     - assets/images/failed.gif
     - assets/images/instruction.gif
+    - assets/images/question_mark.gif
+    - assets/images/attention.gif
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.

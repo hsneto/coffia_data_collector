@@ -69,11 +69,21 @@ class CustomDialog extends StatelessWidget {
             top: 0,
             left: 16,
             right: 16,
-            child: CircleAvatar(
-              backgroundColor: Colors.blueAccent,
-              radius: 50,
-              backgroundImage: AssetImage(imagePath),
-            ))
+            child: Container(
+                decoration: BoxDecoration(
+                    color: Colors.black,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                          blurRadius: 10,
+                          color: Colors.black26,
+                          spreadRadius: 5)
+                    ]),
+                child: CircleAvatar(
+                  backgroundColor: Colors.blueAccent,
+                  radius: 50,
+                  backgroundImage: AssetImage(imagePath),
+                )))
       ],
     );
   }
