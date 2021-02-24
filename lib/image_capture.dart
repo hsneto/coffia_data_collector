@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:metadata/metadata.dart' as md;
@@ -26,20 +27,23 @@ class _ImageCaptureState extends State<ImageCapture> {
   double _progress;
   bool _isLoading = false;
   bool _isLogged = false;
+  FirebaseUser _currentUser;
+
+  final GoogleSignIn googleSignIn = GoogleSignIn();
   final _imagePicker = ImagePicker();
 
   TextEditingController labelController = TextEditingController();
   GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
-  // Sign-in anonymously
-  Future<void> _signInAnonymously() async {
-    try {
-      await FirebaseAuth.instance.signInAnonymously();
-      _isLogged = true;
-    } catch (e) {
-      print(e); // TODO: show dialog with error
-    }
-  }
+  // // Sign-in anonymously
+  // Future<void> _signInAnonymously() async {
+  //   try {
+  //     await FirebaseAuth.instance.signInAnonymously();
+  //     _isLogged = true;
+  //   } catch (e) {
+  //     print(e); // TODO: show dialog with error
+  //   }
+  // }
 
   // Select an  image via gallery or camera
   Future<void> _pickImage(ImageSource source) async {
@@ -65,13 +69,11 @@ class _ImageCaptureState extends State<ImageCapture> {
     } else {
       PickedFile selected = await _imagePicker.getImage(source: source);
 
-      // SignIn Anonymously
-      if (!_isLogged) await _signInAnonymously();
-
       // Read image metadata
       var bytes = await selected.readAsBytes();
       var metadata = md.MetaData.exifData(bytes);
-      var exifData = (metadata.error == null) ? metadata.exifData : {};
+      var exifData =
+          (metadata.error == null) ? metadata.exifData : {"firebase": {}};
 
       setState(() {
         _imageFile = File(selected.path);
@@ -106,6 +108,40 @@ class _ImageCaptureState extends State<ImageCapture> {
       return true;
     else
       return false;
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+
+    FirebaseAuth.instance.onAuthStateChanged.listen((user) {
+      _currentUser = user;
+    });
+  }
+
+  // Ger current user
+  Future<FirebaseUser> _getUser() async {
+    if (_currentUser != null) return _currentUser;
+
+    try {
+      final GoogleSignInAccount googleSignInAccount =
+          await googleSignIn.signIn();
+      final GoogleSignInAuthentication googleSignInAuthentication =
+          await googleSignInAccount.authentication;
+
+      final AuthCredential credential = GoogleAuthProvider.getCredential(
+          idToken: googleSignInAuthentication.idToken,
+          accessToken: googleSignInAuthentication.accessToken);
+
+      final AuthResult authResult =
+          await FirebaseAuth.instance.signInWithCredential(credential);
+
+      final FirebaseUser user = authResult.user;
+      return user;
+    } catch (error) {
+      return null;
+    }
   }
 
   // Remove image
@@ -149,58 +185,93 @@ class _ImageCaptureState extends State<ImageCapture> {
 
   // Upload image and metadata collection
   void _sendImage() async {
-    String idName = DateTime.now().millisecondsSinceEpoch.toString();
+    final FirebaseUser user = await _getUser();
 
-    // Check Internet Connection
-    bool isConnected = await checkInternet();
-    if (isConnected) {
-      StorageUploadTask _uploadTask = FirebaseStorage.instance
-          .ref()
-          .child("data")
-          .child(idName)
-          .putFile(_imageFile);
-
-      _uploadTask.events.listen((event) {
-        setState(() {
-          _isLoading = true;
-          _progress = event.snapshot.bytesTransferred.toDouble() /
-              event.snapshot.totalByteCount.toDouble();
-        });
-      }).onError((error) {
-        print(error);
-      });
-
-      StorageTaskSnapshot _taskSnapshot = await _uploadTask.onComplete;
-      String url = await _taskSnapshot.ref.getDownloadURL();
-      _exifData["firebase"] = {"idName": idName, "url": url, "label": _label};
-      Firestore.instance.collection("data").add(_exifData);
-
+    if (user == null) {
       showDialog(
           context: context,
           builder: (context) => CustomDialog(
-                title: "Upload",
-                description: "Imagem enviada com sucesso!",
-                buttonText: "OK",
-                imagePath: "assets/images/checked.gif",
-                onPressed: _clear,
-              )).then((value) {
-        _isLoading = false;
-        _progress = 0.0;
-      });
-    } else {
-      showDialog(
-          context: context,
-          builder: (context) => CustomDialog(
-                title: "Upload",
+                title: "Falha de Autenticação",
                 description:
-                    "Falha no envio da imagem!\nConfira sua conexão com a internet.",
+                    "Não foi possível fazer o login. Tente novamente!.",
                 buttonText: "OK",
                 imagePath: "assets/images/failed.gif",
                 onPressed: _clear,
-              )).then((value) {
-        _isLoading = false;
-        _progress = 0.0;
-      });
+              ));
+    } else {
+      String imageId = user.uid.toString() +
+          "_" +
+          DateTime.now().millisecondsSinceEpoch.toString();
+
+      // Check Internet Connection
+      bool isConnected = await checkInternet();
+      if (isConnected) {
+        StorageUploadTask _uploadTask = FirebaseStorage.instance
+            .ref()
+            .child("data")
+            .child(imageId)
+            .putFile(_imageFile);
+
+        _uploadTask.events.listen((event) {
+          setState(() {
+            _isLoading = true;
+            _progress = event.snapshot.bytesTransferred.toDouble() /
+                event.snapshot.totalByteCount.toDouble();
+          });
+        }).onError((error) {
+          print(error);
+        });
+
+        StorageTaskSnapshot _taskSnapshot = await _uploadTask.onComplete;
+        String url = await _taskSnapshot.ref.getDownloadURL();
+        _exifData["firebase"] = {
+          "id": imageId,
+          "label": _label,
+          "url": url,
+        };
+        Firestore.instance
+            .collection(user.uid)
+            .document(imageId)
+            .setData(_exifData);
+
+        Firestore.instance
+            .collection(user.uid)
+            .document("user")
+            .setData({
+          "displayName": user.displayName,
+          "uid": user.uid,
+          "email": user.email,
+          "phoneNumber": user.phoneNumber,
+          "auth": "Google SignIn"
+        });
+
+        showDialog(
+            context: context,
+            builder: (context) => CustomDialog(
+                  title: "Upload",
+                  description: "Imagem enviada com sucesso!",
+                  buttonText: "OK",
+                  imagePath: "assets/images/checked.gif",
+                  onPressed: _clear,
+                )).then((value) {
+          _isLoading = false;
+          _progress = 0.0;
+        });
+      } else {
+        showDialog(
+            context: context,
+            builder: (context) => CustomDialog(
+                  title: "Upload",
+                  description:
+                      "Falha no envio da imagem!\nConfira sua conexão com a internet.",
+                  buttonText: "OK",
+                  imagePath: "assets/images/failed.gif",
+                  onPressed: _clear,
+                )).then((value) {
+          _isLoading = false;
+          _progress = 0.0;
+        });
+      }
     }
   }
 
@@ -261,8 +332,8 @@ class _ImageCaptureState extends State<ImageCapture> {
         ] else ...[
           Column(
             children: <Widget>[
-              Image.asset("assets/images/static_background.jpg",
-                  fit: BoxFit.fitWidth),
+              Image.asset("assets/images/static_background.png",
+                  fit: BoxFit.fitHeight),
             ],
           ),
         ]
