@@ -59,12 +59,18 @@ flutter:
 
   # To add assets to your application, add an assets section, like this:
   assets:
+    # Static Images
     - assets/images/static_background.png
-    - assets/images/checked.gif
-    - assets/images/failed.gif
-    - assets/images/instruction.gif
-    - assets/images/question_mark.gif
-    - assets/images/attention.gif
+    # Dialog Gifs
+    - assets/gifs/checked.gif
+    - assets/gifs/failed.gif
+    - assets/gifs/instruction.gif
+    - assets/gifs/question_mark.gif
+    - assets/gifs/attention.gif
+    # Sample Images
+    - assets/samples/sample_0.jpeg
+    - assets/samples/sample_0.jpeg
+    - assets/samples/sample_0.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.

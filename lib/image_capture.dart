@@ -63,7 +63,7 @@ class _ImageCaptureState extends State<ImageCapture> {
                 description:
                     "Por motivos do projeto, o aplicativo bloqueia o uso da câmera antes das $CAPTURE_START_TIME e depois das $CAPTURE_END_TIME horas.",
                 buttonText: "OK",
-                imagePath: "assets/images/attention.gif",
+                imagePath: "assets/gifs/attention.gif",
                 onPressed: _clear,
               ));
     } else {
@@ -195,7 +195,7 @@ class _ImageCaptureState extends State<ImageCapture> {
                 description:
                     "Não foi possível fazer o login. Tente novamente!.",
                 buttonText: "OK",
-                imagePath: "assets/images/failed.gif",
+                imagePath: "assets/gifs/failed.gif",
                 onPressed: _clear,
               ));
     } else {
@@ -234,10 +234,7 @@ class _ImageCaptureState extends State<ImageCapture> {
             .document(imageId)
             .setData(_exifData);
 
-        Firestore.instance
-            .collection(user.uid)
-            .document("user")
-            .setData({
+        Firestore.instance.collection(user.uid).document("user").setData({
           "displayName": user.displayName,
           "uid": user.uid,
           "email": user.email,
@@ -251,7 +248,7 @@ class _ImageCaptureState extends State<ImageCapture> {
                   title: "Upload",
                   description: "Imagem enviada com sucesso!",
                   buttonText: "OK",
-                  imagePath: "assets/images/checked.gif",
+                  imagePath: "assets/gifs/checked.gif",
                   onPressed: _clear,
                 )).then((value) {
           _isLoading = false;
@@ -265,7 +262,7 @@ class _ImageCaptureState extends State<ImageCapture> {
                   description:
                       "Falha no envio da imagem!\nConfira sua conexão com a internet.",
                   buttonText: "OK",
-                  imagePath: "assets/images/failed.gif",
+                  imagePath: "assets/gifs/failed.gif",
                   onPressed: _clear,
                 )).then((value) {
           _isLoading = false;
@@ -300,7 +297,7 @@ class _ImageCaptureState extends State<ImageCapture> {
                                 title: "Instruções",
                                 description: "bla bla bla",
                                 buttonText: "OK",
-                                imagePath: "assets/images/instruction.gif",
+                                imagePath: "assets/gifs/instruction.gif",
                               ));
                     }),
               ],
@@ -322,22 +319,18 @@ class _ImageCaptureState extends State<ImageCapture> {
           ),
         ),
       ),
-      body: ListView(children: <Widget>[
-        if (_imageFile != null) ...[
-          Image.file(_imageFile),
-          if (_isLoading)
-            LinearProgressIndicator(
-              value: _progress,
-            ),
-        ] else ...[
-          Column(
-            children: <Widget>[
-              Image.asset("assets/images/static_background.png",
+      body: _imageFile == null
+          ? Center(
+              child: Image.asset("assets/images/static_background.png",
                   fit: BoxFit.fitHeight),
-            ],
-          ),
-        ]
-      ]),
+            )
+          : ListView(children: <Widget>[
+              Image.file(_imageFile),
+              if (_isLoading)
+                LinearProgressIndicator(
+                  value: _progress,
+                ),
+            ]),
     );
   }
 }
