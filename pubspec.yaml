@@ -69,8 +69,8 @@ flutter:
     - assets/gifs/attention.gif
     # Sample Images
     - assets/samples/sample_0.jpeg
-    - assets/samples/sample_0.jpeg
-    - assets/samples/sample_0.jpeg
+    - assets/samples/sample_1.jpeg
+    - assets/samples/sample_2.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.

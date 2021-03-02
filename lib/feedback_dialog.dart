@@ -141,7 +141,7 @@ class _FeedbackDialogState extends State<FeedbackDialog> {
               child: CircleAvatar(
                 backgroundColor: Colors.blueAccent,
                 radius: 50,
-                backgroundImage: AssetImage("assets/images/question_mark.gif"),
+                backgroundImage: AssetImage("assets/gifs/question_mark.gif"),
               ),
             ))
       ],

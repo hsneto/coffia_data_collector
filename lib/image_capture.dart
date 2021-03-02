@@ -9,11 +9,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:connectivity/connectivity.dart';
-import 'custom_alert.dart';
+import 'custom_dialog.dart';
 import 'feedback_dialog.dart';
+import 'instruction_dialog.dart';
 
 const int CAPTURE_START_TIME = 9;
-const int CAPTURE_END_TIME = 15;
+const int CAPTURE_END_TIME = 23;
 
 class ImageCapture extends StatefulWidget {
   @override
@@ -70,15 +71,17 @@ class _ImageCaptureState extends State<ImageCapture> {
       PickedFile selected = await _imagePicker.getImage(source: source);
 
       // Read image metadata
-      var bytes = await selected.readAsBytes();
-      var metadata = md.MetaData.exifData(bytes);
-      var exifData =
-          (metadata.error == null) ? metadata.exifData : {"firebase": {}};
+      if (selected != null) {
+        var bytes = await selected.readAsBytes();
+        var metadata = md.MetaData.exifData(bytes);
+        var exifData =
+            (metadata.error == null) ? metadata.exifData : {"firebase": {}};
 
-      setState(() {
-        _imageFile = File(selected.path);
-        _exifData = exifData;
-      });
+        setState(() {
+          _imageFile = File(selected.path);
+          _exifData = exifData;
+        });
+      }
     }
   }
 
@@ -293,12 +296,7 @@ class _ImageCaptureState extends State<ImageCapture> {
                     onPressed: () {
                       showDialog(
                           context: context,
-                          builder: (context) => CustomDialog(
-                                title: "Instruções",
-                                description: "bla bla bla",
-                                buttonText: "OK",
-                                imagePath: "assets/gifs/instruction.gif",
-                              ));
+                          builder: (context) => InstructionDialog());
                     }),
               ],
               if (_imageFile != null) ...[

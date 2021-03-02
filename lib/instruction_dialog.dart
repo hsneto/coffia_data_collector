@@ -1,16 +1,7 @@
 import 'package:flutter/material.dart';
+import 'image_dialog.dart';
 
 class InstructionDialog extends StatelessWidget {
-  final String title, description, buttonText, imagePath;
-  final VoidCallback onPressed;
-
-  InstructionDialog(
-      {this.title,
-      this.description,
-      this.buttonText,
-      this.imagePath,
-      this.onPressed});
-
   @override
   Widget build(BuildContext context) {
     return Dialog(
@@ -41,24 +32,95 @@ class InstructionDialog extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
-              Text(title,
+              Text("Instruções",
                   style: TextStyle(
                       color: Colors.black,
                       fontSize: 24.0,
                       fontWeight: FontWeight.w700)),
               SizedBox(height: 16.0),
-              Text(description,
+              Text(
+                  "Segue abaixo alguns exemplos para serem usados como referência:",
                   textAlign: TextAlign.center,
                   style: TextStyle(color: Colors.black, fontSize: 16.0)),
+              SizedBox(height: 16.0),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: <Widget>[
+                  GestureDetector(
+                      onTap: () async {
+                        await showDialog(
+                            context: context, builder: (_) => ImageDialog(
+                            imagePath: "assets/samples/sample_0.jpeg"
+                        ));
+                      },
+                      child: Column(children: <Widget>[
+                        Image.asset(
+                          'assets/samples/sample_0.jpeg',
+                          fit: BoxFit.cover,
+                          // this is the solution for border
+                          width: 50.0,
+                          height: 50.0,
+                        ),
+                        Padding(
+                            padding: EdgeInsets.only(top: 5.0),
+                            child: Text("0%",
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                    color: Colors.black, fontSize: 16.0))),
+                      ])),
+                  GestureDetector(
+                      onTap: () async {
+                        await showDialog(
+                            context: context, builder: (_) => ImageDialog(
+                            imagePath: "assets/samples/sample_1.jpeg"
+                        ));
+                      },
+                      child: Column(children: <Widget>[
+                        Image.asset(
+                          'assets/samples/sample_1.jpeg',
+                          fit: BoxFit.cover,
+                          // this is the solution for border
+                          width: 50.0,
+                          height: 50.0,
+                        ),
+                        Padding(
+                            padding: EdgeInsets.only(top: 5.0),
+                            child: Text("15%",
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                    color: Colors.black, fontSize: 16.0))),
+                      ])),
+                  GestureDetector(
+                      onTap: () async {
+                        await showDialog(
+                            context: context, builder: (_) => ImageDialog(
+                            imagePath: "assets/samples/sample_2.jpeg"
+                        ));
+                      },
+                      child: Column(children: <Widget>[
+                        Image.asset(
+                          'assets/samples/sample_2.jpeg',
+                          fit: BoxFit.cover,
+                          // this is the solution for border
+                          width: 50.0,
+                          height: 50.0,
+                        ),
+                        Padding(
+                            padding: EdgeInsets.only(top: 5.0),
+                            child: Text("100%",
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                    color: Colors.black, fontSize: 16.0))),
+                      ])),
+                ],
+              ),
               SizedBox(height: 24.0),
               Align(
                 alignment: Alignment.bottomRight,
                 child: FlatButton(
-                  child:
-                      Text(buttonText, style: TextStyle(color: Colors.black45)),
+                  child: Text("OK", style: TextStyle(color: Colors.black45)),
                   onPressed: () {
                     Navigator.pop(context);
-                    if (onPressed != null) onPressed();
                   },
                 ),
               ),
@@ -82,7 +144,7 @@ class InstructionDialog extends StatelessWidget {
                 child: CircleAvatar(
                   backgroundColor: Colors.blueAccent,
                   radius: 50,
-                  backgroundImage: AssetImage(imagePath),
+                  backgroundImage: AssetImage("assets/gifs/instruction.gif"),
                 )))
       ],
     );
