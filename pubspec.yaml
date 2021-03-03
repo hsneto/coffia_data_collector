@@ -67,6 +67,7 @@ flutter:
     - assets/gifs/instruction.gif
     - assets/gifs/question_mark.gif
     - assets/gifs/attention.gif
+    - assets/gifs/info.gif
     # Sample Images
     - assets/samples/sample_0.jpeg
     - assets/samples/sample_1.jpeg

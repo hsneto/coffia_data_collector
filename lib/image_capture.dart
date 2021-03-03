@@ -14,7 +14,7 @@ import 'feedback_dialog.dart';
 import 'instruction_dialog.dart';
 
 const int CAPTURE_START_TIME = 9;
-const int CAPTURE_END_TIME = 23;
+const int CAPTURE_END_TIME = 15;
 
 class ImageCapture extends StatefulWidget {
   @override
@@ -27,24 +27,15 @@ class _ImageCaptureState extends State<ImageCapture> {
   double _label;
   double _progress;
   bool _isLoading = false;
-  bool _isLogged = false;
   FirebaseUser _currentUser;
+
+  int introCounter = 0;
 
   final GoogleSignIn googleSignIn = GoogleSignIn();
   final _imagePicker = ImagePicker();
 
   TextEditingController labelController = TextEditingController();
   GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-
-  // // Sign-in anonymously
-  // Future<void> _signInAnonymously() async {
-  //   try {
-  //     await FirebaseAuth.instance.signInAnonymously();
-  //     _isLogged = true;
-  //   } catch (e) {
-  //     print(e); // TODO: show dialog with error
-  //   }
-  // }
 
   // Select an  image via gallery or camera
   Future<void> _pickImage(ImageSource source) async {
@@ -155,6 +146,7 @@ class _ImageCaptureState extends State<ImageCapture> {
       _imageFile = null;
       _exifData = null;
       _formKey = GlobalKey<FormState>();
+      introCounter = 0;
     });
   }
 
@@ -318,9 +310,35 @@ class _ImageCaptureState extends State<ImageCapture> {
         ),
       ),
       body: _imageFile == null
-          ? Center(
-              child: Image.asset("assets/images/static_background.png",
-                  fit: BoxFit.fitHeight),
+          ?
+          // Center(
+          //         child: Image.asset("assets/images/static_background.png",
+          //             fit: BoxFit.fitHeight),
+          //       )
+          GestureDetector(
+              onTap: () async {
+                print('introCounter = $introCounter');
+                if (introCounter == 2) {
+                  await showDialog(
+                      context: context,
+                      builder: (context) => CustomDialog(
+                            title: "CoffIA: Data Collector",
+                            description:
+                                "Este aplicativo coleta imagens de diferentes porcentagens de maturação do grão do café para criar um banco de imagens que será usado em projeto de parceria entre o Ifes - Campus Vitória e o Incaper.\n\nAgradecemos sua colaboração!",
+                            buttonText: "OK",
+                            imagePath: "assets/gifs/info.gif",
+                            onPressed: _clear,
+                          ));
+                  introCounter = 0;
+                } else {
+                  introCounter++;
+                }
+              },
+              child: Center(
+                  child: Image.asset(
+                'assets/images/static_background.png',
+                fit: BoxFit.fitHeight,
+              )),
             )
           : ListView(children: <Widget>[
               Image.file(_imageFile),

@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'custom_dialog.dart';
 import 'image_dialog.dart';
-import 'instruction_dialog_label.dart';
 
-class InstructionDialog extends StatelessWidget {
+class InstructionDialogLabel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Dialog(
@@ -41,7 +40,7 @@ class InstructionDialog extends StatelessWidget {
                       fontWeight: FontWeight.w700)),
               SizedBox(height: 16.0),
               Text(
-                  "Procure fazer a imagem dos ramos laterais, como mostra as figuras abaixo:",
+                  "Ao enviar a imagem, faça uma análise da porcentagem de grãos maduros (prontos para serem colhidos) que você acredita que tenha neste ramo, conforme os exemplos abaixo:",
                   textAlign: TextAlign.center,
                   style: TextStyle(color: Colors.black, fontSize: 16.0)),
               SizedBox(height: 16.0),
@@ -63,6 +62,12 @@ class InstructionDialog extends StatelessWidget {
                           width: 50.0,
                           height: 50.0,
                         ),
+                        Padding(
+                            padding: EdgeInsets.only(top: 5.0),
+                            child: Text("0%",
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                    color: Colors.black, fontSize: 16.0))),
                       ])),
                   GestureDetector(
                       onTap: () async {
@@ -79,6 +84,12 @@ class InstructionDialog extends StatelessWidget {
                           width: 50.0,
                           height: 50.0,
                         ),
+                        Padding(
+                            padding: EdgeInsets.only(top: 5.0),
+                            child: Text("15%",
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                    color: Colors.black, fontSize: 16.0))),
                       ])),
                   GestureDetector(
                       onTap: () async {
@@ -95,6 +106,12 @@ class InstructionDialog extends StatelessWidget {
                           width: 50.0,
                           height: 50.0,
                         ),
+                        Padding(
+                            padding: EdgeInsets.only(top: 5.0),
+                            child: Text("100%",
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                    color: Colors.black, fontSize: 16.0))),
                       ])),
                 ],
               ),
@@ -102,14 +119,9 @@ class InstructionDialog extends StatelessWidget {
               Align(
                 alignment: Alignment.bottomRight,
                 child: FlatButton(
-                  child:
-                      Text("PRÓXIMO", style: TextStyle(color: Colors.black45)),
+                  child: Text("OK", style: TextStyle(color: Colors.black45)),
                   onPressed: () {
                     Navigator.pop(context);
-
-                    showDialog(
-                        context: context,
-                        builder: (context) => InstructionDialogLabel());
                   },
                 ),
               ),
