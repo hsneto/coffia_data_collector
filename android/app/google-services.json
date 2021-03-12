@@ -15,6 +15,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "246941395228-2imp6rug20mfgij2uittmcvalkb036gs.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "hsneto.com.coffia_data_collector",
+            "certificate_hash": "d98f54e10f7fbf17332ab94aedf29e490f4303e3"
+          }
+        },
+        {
           "client_id": "246941395228-m65tm5rpfchnes3iruqjot4go7bsjgla.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {

@@ -134,6 +134,7 @@ class _ImageCaptureState extends State<ImageCapture> {
       final FirebaseUser user = authResult.user;
       return user;
     } catch (error) {
+      print(error);
       return null;
     }
   }
@@ -317,7 +318,6 @@ class _ImageCaptureState extends State<ImageCapture> {
           //       )
           GestureDetector(
               onTap: () async {
-                print('introCounter = $introCounter');
                 if (introCounter == 2) {
                   await showDialog(
                       context: context,
